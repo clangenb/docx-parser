@@ -96,12 +96,12 @@ class HtmlTag(object):
     closed_tag_format = '</{tag}>'
 
     def __init__(
-            self,
-            tag,
-            allow_self_closing=False,
-            closed=False,
-            allow_whitespace=False,
-            **attrs
+        self,
+        tag,
+        allow_self_closing=False,
+        closed=False,
+        allow_whitespace=False,
+        **attrs
     ):
         self.tag = tag
         self.allow_self_closing = allow_self_closing
@@ -154,9 +154,9 @@ class HtmlTag(object):
         return convert_dictionary_to_html_attributes(self.attrs)
 
 
-class PyDocXHTMLExporter(PyDocXExporter):
+class PyDocXTextExporter(PyDocXExporter):
     def __init__(self, *args, **kwargs):
-        super(PyDocXHTMLExporter, self).__init__(*args, **kwargs)
+        super(PyDocXTextExporter, self).__init__(*args, **kwargs)
         self.table_cell_rowspan_tracking = {}
         self.in_table_cell = False
         self.heading_level_conversion_map = {
@@ -208,12 +208,12 @@ class PyDocXHTMLExporter(PyDocXExporter):
         return ''.join(
             result.to_html() if isinstance(result, HtmlTag)
             else result
-            for result in super(PyDocXHTMLExporter, self).export()
+            for result in super(PyDocXTextExporter, self).export()
         )
 
     def export_document(self, document):
         tag = HtmlTag('html')
-        results = super(PyDocXHTMLExporter, self).export_document(document)
+        results = super(PyDocXTextExporter, self).export_document(document)
         sequence = []
         head = self.head()
         if head is not None:
@@ -223,7 +223,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
         return tag.apply(chain(*sequence))
 
     def export_body(self, body):
-        results = super(PyDocXHTMLExporter, self).export_body(body)
+        results = super(PyDocXTextExporter, self).export_body(body)
         tag = HtmlTag('body')
         return tag.apply(chain(results, self.footer()))
 
@@ -232,7 +232,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
             yield result
 
     def export_footnotes(self):
-        results = super(PyDocXHTMLExporter, self).export_footnotes()
+        results = super(PyDocXTextExporter, self).export_footnotes()
         attrs = {
             'class': 'pydocx-list-style-type-decimal',
         }
@@ -243,7 +243,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
         return page_break.apply(results, allow_empty=False)
 
     def export_footnote(self, footnote):
-        results = super(PyDocXHTMLExporter, self).export_footnote(footnote)
+        results = super(PyDocXTextExporter, self).export_footnote(footnote)
         tag = HtmlTag('li')
         return tag.apply(results, allow_empty=False)
 
@@ -273,7 +273,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
         return HtmlTag(tag)
 
     def export_paragraph(self, paragraph):
-        results = super(PyDocXHTMLExporter, self).export_paragraph(paragraph)
+        results = super(PyDocXTextExporter, self).export_paragraph(paragraph)
 
         results = is_not_empty_and_not_only_whitespace(results)
         if results is None:
@@ -364,7 +364,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
         if parent_paragraph and parent_paragraph.heading_style:
             results = self.get_run_styles_to_apply_for_heading(run)
         else:
-            results = super(PyDocXHTMLExporter, self).get_run_styles_to_apply(run)
+            results = super(PyDocXTextExporter, self).get_run_styles_to_apply(run)
         for result in results:
             yield result
 
@@ -375,7 +375,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
             self.export_run_property_vanish,
         ])
 
-        handlers = super(PyDocXHTMLExporter, self).get_run_styles_to_apply(run)
+        handlers = super(PyDocXTextExporter, self).get_run_styles_to_apply(run)
         for handler in handlers:
             if handler in allowed_handlers:
                 yield handler
@@ -485,7 +485,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
         return self.export_run_property(tag, run, results)
 
     def export_text(self, text):
-        results = super(PyDocXHTMLExporter, self).export_text(text)
+        results = super(PyDocXTextExporter, self).export_text(text)
         for result in results:
             if result:
                 yield result
@@ -506,7 +506,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
             return HtmlTag('a', href=href)
 
     def export_hyperlink(self, hyperlink):
-        results = super(PyDocXHTMLExporter, self).export_hyperlink(hyperlink)
+        results = super(PyDocXTextExporter, self).export_hyperlink(hyperlink)
         tag = self.get_hyperlink_tag(target_uri=hyperlink.target_uri)
         if tag:
             results = tag.apply(results, allow_empty=False)
@@ -541,12 +541,12 @@ class PyDocXHTMLExporter(PyDocXExporter):
     def export_table(self, table):
         table_cell_spans = table.calculate_table_cell_spans()
         self.table_cell_rowspan_tracking[table] = table_cell_spans
-        results = super(PyDocXHTMLExporter, self).export_table(table)
+        results = super(PyDocXTextExporter, self).export_table(table)
         tag = self.get_table_tag(table)
         return tag.apply(results)
 
     def export_table_row(self, table_row):
-        results = super(PyDocXHTMLExporter, self).export_table_row(table_row)
+        results = super(PyDocXTextExporter, self).export_table_row(table_row)
         tag = HtmlTag('tr')
         return tag.apply(results)
 
@@ -655,7 +655,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
             )
 
     def export_inserted_run(self, inserted_run):
-        results = super(PyDocXHTMLExporter, self).export_inserted_run(inserted_run)
+        results = super(PyDocXTextExporter, self).export_inserted_run(inserted_run)
         attrs = {
             'class': 'pydocx-insert',
         }
@@ -678,7 +678,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
             yield tag
 
     def export_footnote_reference(self, footnote_reference):
-        results = super(PyDocXHTMLExporter, self).export_footnote_reference(
+        results = super(PyDocXTextExporter, self).export_footnote_reference(
             footnote_reference,
         )
         footnote_id = footnote_reference.footnote_id
@@ -707,7 +707,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
             yield result
 
     def export_tab_char(self, tab_char):
-        results = super(PyDocXHTMLExporter, self).export_tab_char(tab_char)
+        results = super(PyDocXTextExporter, self).export_tab_char(tab_char)
         attrs = {
             'class': 'pydocx-tab',
         }
@@ -715,7 +715,7 @@ class PyDocXHTMLExporter(PyDocXExporter):
         return tag.apply(results)
 
     def export_numbering_span(self, numbering_span):
-        results = super(PyDocXHTMLExporter, self).export_numbering_span(numbering_span)
+        results = super(PyDocXTextExporter, self).export_numbering_span(numbering_span)
         pydocx_class = 'pydocx-list-style-type-{fmt}'.format(
             fmt=numbering_span.numbering_level.num_format,
         )

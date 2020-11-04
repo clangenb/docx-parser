@@ -1,7 +1,7 @@
 from pydocx import PyDocX
-from pydocx.export import PyDocXHTMLExporter
+from pydocx_text_exporter import PyDocXTextExporter
 
-path = '../docs/raw/IVOx0012 Selbstbewusstsein&Selbstvertrauen finden 2013-06.docx'
+path = './docs/raw/IVOx0012 Selbstbewusstsein&Selbstvertrauen finden 2013-06.docx'
 
 
 def print_hi(name):
@@ -14,11 +14,9 @@ if __name__ == '__main__':
 
     html = PyDocX.to_html(path)
 
-    exporter = PyDocXHTMLExporter(open(path, 'rb'))
-    # exporter._first_pass_export()
-    # exporter._post_first_pass_processing()
-    # exporter.first_pass = False
+    exporter = PyDocXTextExporter(open(path, 'rb'))
+    exporter._first_pass_export()
+    exporter._post_first_pass_processing()
+    exporter.first_pass = False
 
-    body = exporter.export_body(exporter.main_document_part)
-
-    print(body)
+    print(exporter.main_document_part.document)
