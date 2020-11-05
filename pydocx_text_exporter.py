@@ -214,7 +214,7 @@ class PyDocXTextExporter(PyDocXExporter):
             for result in super(PyDocXTextExporter, self).export()
         )
 
-    def export_to_docx_to(self):
+    def export_to_docx_dto(self):
         docx = DocxDto()
 
         open_paragraph = False
@@ -348,12 +348,12 @@ class PyDocXTextExporter(PyDocXExporter):
         return results
 
     @staticmethod
-    def is_emphasized_tag(maybe_em_tag):
-        return isinstance(maybe_em_tag, HtmlTag) and maybe_em_tag.tag == 'em'
+    def is_emphasized_tag(maybe_emphasis_tag):
+        return isinstance(maybe_emphasis_tag, HtmlTag) and maybe_emphasis_tag.tag == 'em'
 
     @staticmethod
-    def is_paragraph_tag(maybe_em_tag):
-        return isinstance(maybe_em_tag, HtmlTag) and maybe_em_tag.tag == 'p'
+    def is_paragraph_tag(maybe_paragraph_tag):
+        return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'p'
 
     def export_paragraph_property_justification(self, paragraph, results):
         # TODO these classes could be applied on the paragraph, and not as
