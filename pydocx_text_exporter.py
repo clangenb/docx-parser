@@ -30,10 +30,10 @@ from pydocx.util.xml import (
 
 
 def convert_twips_to_ems(value):
-    '''
+    """
     >>> convert_twips_to_ems(30)
     0.125
-    '''
+    """
     return value / TWIPS_PER_POINT / POINTS_PER_EM
 
 
@@ -42,10 +42,10 @@ def convert_emus_to_pixels(emus):
 
 
 def get_first_from_sequence(sequence, default=None):
-    '''
+    """
     Given a sequence, return the first item in the sequence. If the sequence is
     empty, return the passed in default.
-    '''
+    """
     first_result = default
     try:
         first_result = next(sequence)
@@ -55,22 +55,22 @@ def get_first_from_sequence(sequence, default=None):
 
 
 def is_only_whitespace(obj):
-    '''
+    """
     If the obj has `strip` return True if calling strip on the obj results in
     an empty instance. Otherwise, return False.
-    '''
+    """
     if hasattr(obj, 'strip'):
         return not obj.strip()
     return False
 
 
 def is_not_empty_and_not_only_whitespace(gen):
-    '''
+    """
     Determine if a generator is empty, or consists only of whitespace.
 
     If the generator is non-empty, return the original generator. Otherwise,
     return None
-    '''
+    """
     queue = []
     if gen is None:
         return
@@ -282,8 +282,9 @@ class PyDocXTextExporter(PyDocXExporter):
         tag = self.get_paragraph_tag(paragraph)
         if tag:
             results = tag.apply(results)
-
+        print('paragraph results')
         for result in results:
+            print(result)
             yield result
 
     def export_paragraph_property_justification(self, paragraph, results):
@@ -369,11 +370,8 @@ class PyDocXTextExporter(PyDocXExporter):
             yield result
 
     def get_run_styles_to_apply_for_heading(self, run):
-        allowed_handlers = set([
-            self.export_run_property_italic,
-            self.export_run_property_hidden,
-            self.export_run_property_vanish,
-        ])
+        allowed_handlers = {self.export_run_property_italic, self.export_run_property_hidden,
+                            self.export_run_property_vanish}
 
         handlers = super(PyDocXTextExporter, self).get_run_styles_to_apply(run)
         for handler in handlers:
