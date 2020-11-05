@@ -294,19 +294,34 @@ class PyDocXTextExporter(PyDocXExporter):
         results = []
         children = peekable(paragraph_children)
 
+        tag_open = False
+
         for child in children:
             if not self.is_em_tag(child):
                 results.append(child)
                 continue
 
-            if not child.closed:
+            if not tag_open:
+                tag_open = True
                 results.append(child)
+            elif children and self.is_em_tag(children.peek()):
+                next(children)
+                continue
             else:
-                # print(spy(children, 2))
-                if not self.is_em_tag(children.peek()):
-                    results.append(child)
+                # the next is not an em tag, but maybe the second next
+                if children:
+                    next_item = next(children)
                 else:
+                    continue
+
+                if children and self.is_em_tag(children.peek()):
+                    # the next one is again an em tag, hence emphasize the one in between too.
+                    results.append(next_item)
                     next(children)
+                else:
+                    tag_open = False
+                    results.append(child)
+                    results.append(next_item)
 
         # print(results)
         return results
