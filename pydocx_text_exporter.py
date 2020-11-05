@@ -10,6 +10,7 @@ import base64
 import posixpath
 from itertools import chain
 
+from more_itertools import peekable, spy
 from pydocx.constants import (
     JUSTIFY_CENTER,
     JUSTIFY_LEFT,
@@ -96,12 +97,12 @@ class HtmlTag(object):
     closed_tag_format = '</{tag}>'
 
     def __init__(
-        self,
-        tag,
-        allow_self_closing=False,
-        closed=False,
-        allow_whitespace=False,
-        **attrs
+            self,
+            tag,
+            allow_self_closing=False,
+            closed=False,
+            allow_whitespace=False,
+            **attrs
     ):
         self.tag = tag
         self.allow_self_closing = allow_self_closing
@@ -272,7 +273,7 @@ class PyDocXTextExporter(PyDocXExporter):
         )
         return HtmlTag(tag)
 
-    def export_paragraph(self, paragraph):
+    def export_paragraph(self, paragraph, merge_style_tags=True):
         results = super(PyDocXTextExporter, self).export_paragraph(paragraph)
 
         results = is_not_empty_and_not_only_whitespace(results)
@@ -282,10 +283,37 @@ class PyDocXTextExporter(PyDocXExporter):
         tag = self.get_paragraph_tag(paragraph)
         if tag:
             results = tag.apply(results)
-        print('paragraph results')
+
+        if merge_style_tags:
+            results = self.merge_emphasis_style_tags(results)
+
         for result in results:
-            print(result)
             yield result
+
+    def merge_emphasis_style_tags(self, paragraph_children):
+        results = []
+        children = peekable(paragraph_children)
+
+        for child in children:
+            if not self.is_em_tag(child):
+                results.append(child)
+                continue
+
+            if not child.closed:
+                results.append(child)
+            else:
+                # print(spy(children, 2))
+                if not self.is_em_tag(children.peek()):
+                    results.append(child)
+                else:
+                    next(children)
+
+        # print(results)
+        return results
+
+    @staticmethod
+    def is_em_tag(maybe_em_tag):
+        return isinstance(maybe_em_tag, HtmlTag) and maybe_em_tag.tag == 'em'
 
     def export_paragraph_property_justification(self, paragraph, results):
         # TODO these classes could be applied on the paragraph, and not as
