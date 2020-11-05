@@ -29,6 +29,8 @@ from pydocx.util.xml import (
     convert_dictionary_to_style_fragment,
 )
 
+from docx_dto import DocxDto, Paragraph, Section
+
 
 def convert_twips_to_ems(value):
     """
@@ -212,6 +214,25 @@ class PyDocXTextExporter(PyDocXExporter):
             for result in super(PyDocXTextExporter, self).export()
         )
 
+    def export_to_docx_to(self):
+        docx = DocxDto()
+
+        open_paragraph = False
+        str_buffer = ''
+        for result in super(PyDocXTextExporter, self).export():
+            if not isinstance(result, HtmlTag):
+                str_buffer += result
+            elif self.is_paragraph_tag(result):
+                if open_paragraph is True:
+                    docx.content.append(Paragraph([Section(str_buffer)]))
+                    str_buffer = ''
+                    open_paragraph = False
+                else:
+                    str_buffer = ''
+                    open_paragraph = True
+
+        return docx
+
     def export_document(self, document):
         tag = HtmlTag('html')
         results = super(PyDocXTextExporter, self).export_document(document)
@@ -329,6 +350,10 @@ class PyDocXTextExporter(PyDocXExporter):
     @staticmethod
     def is_emphasized_tag(maybe_em_tag):
         return isinstance(maybe_em_tag, HtmlTag) and maybe_em_tag.tag == 'em'
+
+    @staticmethod
+    def is_paragraph_tag(maybe_em_tag):
+        return isinstance(maybe_em_tag, HtmlTag) and maybe_em_tag.tag == 'p'
 
     def export_paragraph_property_justification(self, paragraph, results):
         # TODO these classes could be applied on the paragraph, and not as

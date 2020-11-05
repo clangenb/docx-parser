@@ -1,4 +1,5 @@
-from pydocx import PyDocX
+import jsonpickle
+
 from pydocx_text_exporter import PyDocXTextExporter
 
 path = './docs/raw/IVOx0012 Selbstbewusstsein&Selbstvertrauen finden 2013-06.docx'
@@ -12,11 +13,15 @@ def print_hi(name):
 if __name__ == '__main__':
     print_hi('PyCharm')
 
-    html = PyDocX.to_html(path)
-
     exporter = PyDocXTextExporter(open(path, 'rb'))
     exporter._first_pass_export()
     exporter._post_first_pass_processing()
     exporter.first_pass = False
 
-    print(exporter.main_document_part.document)
+    # for child in exporter.main_document_part.document.body.children:
+    #     if isinstance(child, Paragraph):
+    #         # print(child)
+    #         print(list(exporter.export_paragraph(child)))
+
+    jsonStr = jsonpickle.encode(exporter.export_to_docx_to(), unpicklable=False, make_refs=False)
+    print(jsonStr)
