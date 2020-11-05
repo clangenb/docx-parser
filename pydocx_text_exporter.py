@@ -217,19 +217,32 @@ class PyDocXTextExporter(PyDocXExporter):
     def export_to_docx_dto(self):
         docx = DocxDto()
 
-        open_paragraph = False
+        current_paragraph = None
+        open_emphasis_tag = False
         str_buffer = ''
         for result in super(PyDocXTextExporter, self).export():
             if not isinstance(result, HtmlTag):
                 str_buffer += result
             elif self.is_paragraph_tag(result):
-                if open_paragraph is True:
-                    docx.content.append(Paragraph([Section(str_buffer)]))
+                if current_paragraph is not None:
+                    if str_buffer.strip():
+                        current_paragraph.content.append(Section(str_buffer))
+                    docx.content.append(current_paragraph)
                     str_buffer = ''
-                    open_paragraph = False
+                    current_paragraph = None
                 else:
                     str_buffer = ''
-                    open_paragraph = True
+                    current_paragraph = Paragraph()
+            elif self.is_emphasized_tag(result):
+                if open_emphasis_tag is True:
+                    current_paragraph.content.append(Section(str_buffer, text_style='em'))
+                    str_buffer = ''
+                    open_emphasis_tag = False
+                else:
+                    if str_buffer.strip():
+                        current_paragraph.content.append(Section(str_buffer))
+                        str_buffer = ''
+                    open_emphasis_tag = True
 
         return docx
 

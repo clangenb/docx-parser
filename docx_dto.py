@@ -1,5 +1,6 @@
 from typing import List
 
+
 class Metadata:
     def __init__(self, name: str, date: str, location: str, type: str = '', category: str = ''):
         self.name = name
