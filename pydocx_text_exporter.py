@@ -297,14 +297,14 @@ class PyDocXTextExporter(PyDocXExporter):
         tag_open = False
 
         for child in children:
-            if not self.is_em_tag(child):
+            if not self.is_emphasized_tag(child):
                 results.append(child)
                 continue
 
             if not tag_open:
                 tag_open = True
                 results.append(child)
-            elif children and self.is_em_tag(children.peek()):
+            elif children and self.is_emphasized_tag(children.peek()):
                 next(children)
                 continue
             else:
@@ -314,7 +314,7 @@ class PyDocXTextExporter(PyDocXExporter):
                 else:
                     continue
 
-                if children and self.is_em_tag(children.peek()):
+                if children and self.is_emphasized_tag(children.peek()):
                     # the next one is again an em tag, hence emphasize the one in between too.
                     results.append(next_item)
                     next(children)
@@ -327,7 +327,7 @@ class PyDocXTextExporter(PyDocXExporter):
         return results
 
     @staticmethod
-    def is_em_tag(maybe_em_tag):
+    def is_emphasized_tag(maybe_em_tag):
         return isinstance(maybe_em_tag, HtmlTag) and maybe_em_tag.tag == 'em'
 
     def export_paragraph_property_justification(self, paragraph, results):
