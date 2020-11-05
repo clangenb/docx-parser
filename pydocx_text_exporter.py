@@ -294,15 +294,12 @@ class PyDocXTextExporter(PyDocXExporter):
         results = []
         children = peekable(paragraph_children)
 
-        tag_open = False
-
         for child in children:
             if not self.is_emphasized_tag(child):
                 results.append(child)
                 continue
 
-            if not tag_open:
-                tag_open = True
+            if not child.closed:
                 results.append(child)
             elif children and self.is_emphasized_tag(children.peek()):
                 next(children)
@@ -319,7 +316,6 @@ class PyDocXTextExporter(PyDocXExporter):
                     results.append(next_item)
                     next(children)
                 else:
-                    tag_open = False
                     results.append(child)
                     results.append(next_item)
 
