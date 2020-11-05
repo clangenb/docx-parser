@@ -10,20 +10,20 @@ class Metadata:
         self.category = category
 
 
-class Section:
+class TextSpan:
     def __init__(self, text: str, text_style: str = ''):
         self.text = text,
         self.tex_style = text_style
 
 
 class Paragraph:
-    def __init__(self, content: List[Section] = None):
+    def __init__(self, content: List[TextSpan] = None):
         if content is None:
             content = []
         self.content = content
 
-    def append_section(self, section: Section):
-        self.content.append(section)
+    def append_span(self, span: TextSpan):
+        self.content.append(span)
 
 
 class DocxDto:

@@ -29,7 +29,7 @@ from pydocx.util.xml import (
     convert_dictionary_to_style_fragment,
 )
 
-from docx_dto import DocxDto, Paragraph, Section
+from docx_dto import DocxDto, Paragraph, TextSpan
 
 
 def convert_twips_to_ems(value):
@@ -226,7 +226,7 @@ class PyDocXTextExporter(PyDocXExporter):
             elif self.is_paragraph_tag(result):
                 if current_paragraph is not None:
                     if str_buffer.strip():
-                        current_paragraph.append_section(Section(str_buffer))
+                        current_paragraph.append_span(TextSpan(str_buffer))
                     docx.append_paragraph(current_paragraph)
                     str_buffer = ''
                     current_paragraph = None
@@ -235,14 +235,16 @@ class PyDocXTextExporter(PyDocXExporter):
                     current_paragraph = Paragraph()
             elif self.is_emphasized_tag(result):
                 if open_emphasis_tag is True:
-                    current_paragraph.append_section(Section(str_buffer, text_style='em'))
+                    current_paragraph.append_span(TextSpan(str_buffer, text_style='em'))
                     str_buffer = ''
                     open_emphasis_tag = False
                 else:
                     if str_buffer.strip():
-                        current_paragraph.append_section(Section(str_buffer))
+                        current_paragraph.append_span(TextSpan(str_buffer))
                         str_buffer = ''
                     open_emphasis_tag = True
+            else:
+                str_buffer += result.to_html()
 
         return docx
 
