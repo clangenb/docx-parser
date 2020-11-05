@@ -22,6 +22,9 @@ class Paragraph:
             content = []
         self.content = content
 
+    def append_section(self, section: Section):
+        self.content.append(section)
+
 
 class DocxDto:
     def __init__(self, doc_id: str = '', metadata: Metadata = None, content: List[Paragraph] = None):
@@ -30,3 +33,6 @@ class DocxDto:
         self.id = doc_id
         self.metadata = metadata
         self.content = content
+
+    def append_paragraph(self, paragraph):
+        self.content.append(paragraph)

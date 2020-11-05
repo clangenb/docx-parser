@@ -226,8 +226,8 @@ class PyDocXTextExporter(PyDocXExporter):
             elif self.is_paragraph_tag(result):
                 if current_paragraph is not None:
                     if str_buffer.strip():
-                        current_paragraph.content.append(Section(str_buffer))
-                    docx.content.append(current_paragraph)
+                        current_paragraph.append_section(Section(str_buffer))
+                    docx.append_paragraph(current_paragraph)
                     str_buffer = ''
                     current_paragraph = None
                 else:
@@ -235,12 +235,12 @@ class PyDocXTextExporter(PyDocXExporter):
                     current_paragraph = Paragraph()
             elif self.is_emphasized_tag(result):
                 if open_emphasis_tag is True:
-                    current_paragraph.content.append(Section(str_buffer, text_style='em'))
+                    current_paragraph.append_section(Section(str_buffer, text_style='em'))
                     str_buffer = ''
                     open_emphasis_tag = False
                 else:
                     if str_buffer.strip():
-                        current_paragraph.content.append(Section(str_buffer))
+                        current_paragraph.append_section(Section(str_buffer))
                         str_buffer = ''
                     open_emphasis_tag = True
 
