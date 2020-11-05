@@ -305,9 +305,13 @@ class PyDocXTextExporter(PyDocXExporter):
                 next(children)
                 continue
             else:
-                # the next is not an em tag, but maybe the second next
+                # the next is not an em tag, but maybe the second next. If it is only whitespaces, we merge the two
+                # emphasized sections
                 if children:
                     next_item = next(children)
+                    if isinstance(next_item, str) and next_item.strip():
+                        results.append(next_item)
+                        continue
                 else:
                     continue
 
