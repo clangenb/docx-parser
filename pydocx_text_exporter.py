@@ -228,21 +228,19 @@ class PyDocXTextExporter(PyDocXExporter):
                     if str_buffer.strip():
                         current_paragraph.append_span(TextSpan(str_buffer))
                     docx.append_paragraph(current_paragraph)
-                    str_buffer = ''
                     current_paragraph = None
                 else:
-                    str_buffer = ''
                     current_paragraph = Paragraph()
+                str_buffer = ''
             elif self.is_emphasized_tag(result):
                 if open_emphasis_tag is True:
                     current_paragraph.append_span(TextSpan(str_buffer, text_style='em'))
-                    str_buffer = ''
                     open_emphasis_tag = False
                 else:
                     if str_buffer.strip():
                         current_paragraph.append_span(TextSpan(str_buffer))
-                        str_buffer = ''
                     open_emphasis_tag = True
+                str_buffer = ''
             else:
                 str_buffer += result.to_html()
 
