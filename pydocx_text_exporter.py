@@ -167,6 +167,8 @@ class HtmlTag(object):
     def to_text(self):
         if self.is_break_tag(self):
             return '\n'
+        elif self.is_span_tag(self):
+            return ''
         else:
             return self.to_html()
 
@@ -409,9 +411,6 @@ class PyDocXTextExporter(PyDocXExporter):
         children = peekable(paragraph_children)
 
         for child in children:
-            if HtmlTag.is_span_tag(child):
-                continue
-
             if not children:
                 results.append(child)
                 return results
