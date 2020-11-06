@@ -60,7 +60,7 @@ def get_first_from_sequence(sequence, default=None):
 
 def is_invisible(obj):
     """
-    Determines if the object is invisible, i.e., whitespace or linebreaks
+    Determines if the object is invisible, i.e., contains only whitespace or linebreaks
     """
     if isinstance(obj, str):
         return not obj.strip()
@@ -163,6 +163,12 @@ class HtmlTag(object):
                 )
             else:
                 return '<{tag}{end}'.format(tag=self.tag, end=end_bracket)
+
+    def to_text(self):
+        if self.is_break_tag(self):
+            return '\n'
+        else:
+            return self.to_html()
 
     def get_html_attrs(self):
         return convert_dictionary_to_html_attributes(self.attrs)
@@ -291,7 +297,7 @@ class PyDocXTextExporter(PyDocXExporter):
                     docx.metadata = self.export_metadata(results)
                     parsed_metadata = True
             else:
-                str_buffer += result.to_html()
+                str_buffer += result.to_text()
 
         return docx
 
@@ -307,7 +313,6 @@ class PyDocXTextExporter(PyDocXExporter):
         )
 
         data = string_buf.split('<br />')
-        print(data)
         title = data[0].replace('<strong>', '').replace('</strong>', '')
         (loc, date) = data[1].split(',')
 
