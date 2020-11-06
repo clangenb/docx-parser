@@ -157,6 +157,34 @@ class HtmlTag(object):
     def get_html_attrs(self):
         return convert_dictionary_to_html_attributes(self.attrs)
 
+    @staticmethod
+    def is_emphasized_tag(maybe_emphasis_tag):
+        return HtmlTag.is_tag(maybe_emphasis_tag,'em')
+
+    @staticmethod
+    def is_bold_tag(maybe_bold_tag):
+        return HtmlTag.is_tag(maybe_bold_tag, 'strong')
+
+    @staticmethod
+    def is_paragraph_tag(maybe_paragraph_tag):
+        return HtmlTag.is_tag(maybe_paragraph_tag, 'p')
+
+    @staticmethod
+    def is_table_cell_tag(maybe_table_cell_tag):
+        return HtmlTag.is_tag(maybe_table_cell_tag, 'td')
+
+    @staticmethod
+    def is_break_tag(maybe_paragraph_tag):
+        return HtmlTag.is_tag(maybe_paragraph_tag ,'br')
+
+    @staticmethod
+    def is_span_tag(maybe_span_tag):
+        return HtmlTag.is_tag(maybe_span_tag,'span')
+
+    @staticmethod
+    def is_tag(this, other):
+        return isinstance(this, HtmlTag) and this.tag == other
+
 
 class PyDocXTextExporter(PyDocXExporter):
     def __init__(self, *args, **kwargs):
@@ -226,7 +254,7 @@ class PyDocXTextExporter(PyDocXExporter):
         for result in results:
             if not isinstance(result, HtmlTag):
                 str_buffer += result
-            elif self.is_paragraph_tag(result):
+            elif HtmlTag.is_paragraph_tag(result):
                 if current_paragraph is not None:
                     if str_buffer.strip():
                         current_paragraph.append_span(TextSpan(str_buffer))
@@ -235,7 +263,7 @@ class PyDocXTextExporter(PyDocXExporter):
                 else:
                     current_paragraph = Paragraph()
                 str_buffer = ''
-            elif self.is_emphasized_tag(result):
+            elif HtmlTag.is_emphasized_tag(result):
                 if open_emphasis_tag is True:
                     current_paragraph.append_span(TextSpan(str_buffer, text_style='em'))
                     open_emphasis_tag = False
@@ -245,7 +273,7 @@ class PyDocXTextExporter(PyDocXExporter):
                     open_emphasis_tag = True
                 str_buffer = ''
             elif not parsed_metadata:
-                if self.is_table_cell_tag(result):
+                if HtmlTag.is_table_cell_tag(result):
                     docx.metadata = self.export_metadata(results)
                     parsed_metadata = True
             else:
@@ -255,13 +283,13 @@ class PyDocXTextExporter(PyDocXExporter):
 
     def export_metadata(self, results):
         # metadata starts after the first break tag
-        results = itertools.dropwhile(lambda x: not self.is_break_tag(x), results)
+        results = itertools.dropwhile(lambda x: not HtmlTag.is_break_tag(x), results)
         next(results)
 
         string_buf = ''.join(
                 r.to_html() if isinstance(r, HtmlTag)
                 else r
-                for r in itertools.takewhile(lambda x: not self.is_table_cell_tag(x), results)
+                for r in itertools.takewhile(lambda x: not HtmlTag.is_table_cell_tag(x), results)
             )
 
         data = string_buf.split('<br />')
@@ -361,13 +389,13 @@ class PyDocXTextExporter(PyDocXExporter):
         children = peekable(paragraph_children)
 
         for child in children:
-            if not self.is_emphasized_tag(child):
+            if not HtmlTag.is_emphasized_tag(child):
                 results.append(child)
                 continue
 
             if not child.closed:
                 results.append(child)
-            elif children and self.is_emphasized_tag(children.peek()):
+            elif children and HtmlTag.is_emphasized_tag(children.peek()):
                 next(children)
                 continue
             else:
@@ -381,7 +409,7 @@ class PyDocXTextExporter(PyDocXExporter):
                 else:
                     continue
 
-                if children and self.is_emphasized_tag(children.peek()):
+                if children and HtmlTag.is_emphasized_tag(children.peek()):
                     # the next one is again an em tag, hence emphasize the one in between too.
                     results.append(next_item)
                     next(children)
@@ -391,26 +419,6 @@ class PyDocXTextExporter(PyDocXExporter):
 
         # print(results)
         return results
-
-    @staticmethod
-    def is_emphasized_tag(maybe_emphasis_tag):
-        return isinstance(maybe_emphasis_tag, HtmlTag) and maybe_emphasis_tag.tag == 'em'
-
-    @staticmethod
-    def is_bold_tag(maybe_paragraph_tag):
-        return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'strong'
-
-    @staticmethod
-    def is_paragraph_tag(maybe_paragraph_tag):
-        return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'p'
-
-    @staticmethod
-    def is_table_cell_tag(maybe_paragraph_tag):
-        return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'td'
-
-    @staticmethod
-    def is_break_tag(maybe_paragraph_tag):
-        return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'br'
 
     def export_paragraph_property_justification(self, paragraph, results):
         # TODO these classes could be applied on the paragraph, and not as
