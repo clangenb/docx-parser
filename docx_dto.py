@@ -14,7 +14,7 @@ class Metadata:
 class TextSpan:
     def __init__(self, text: str, text_style: str = ''):
         self.text = text,
-        self.tex_style = text_style
+        self.text_style = text_style
 
 
 class Paragraph:

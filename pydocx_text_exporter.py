@@ -261,7 +261,7 @@ class PyDocXTextExporter(PyDocXExporter):
         docx = DocxDto()
 
         current_paragraph = None
-        open_emphasis_tag = False
+        open_style_tag = False
         parsed_metadata = False
         str_buffer = ''
         results = super(PyDocXTextExporter, self).export()
@@ -277,14 +277,14 @@ class PyDocXTextExporter(PyDocXExporter):
                 else:
                     current_paragraph = Paragraph()
                 str_buffer = ''
-            elif HtmlTag.is_emphasized_tag(result):
-                if open_emphasis_tag is True:
-                    current_paragraph.append_span(TextSpan(str_buffer, text_style='em'))
-                    open_emphasis_tag = False
+            elif HtmlTag.is_style_tag(result) and current_paragraph is not None:
+                if open_style_tag is True:
+                    current_paragraph.append_span(TextSpan(str_buffer, text_style=result.tag))
+                    open_style_tag = False
                 else:
                     if str_buffer.strip():
                         current_paragraph.append_span(TextSpan(str_buffer))
-                    open_emphasis_tag = True
+                    open_style_tag = True
                 str_buffer = ''
             elif not parsed_metadata:
                 if HtmlTag.is_table_cell_tag(result):
@@ -422,8 +422,6 @@ class PyDocXTextExporter(PyDocXExporter):
             elif HtmlTag.is_tag(children.peek(), curr_style_tag):
                 # style tag is closing but the next one is the same, hence we skip both and merge the spans
                 next(children)
-            # else:
-                # results.append(child)
             elif is_invisible(children.peek()):
                 # next item is invisible, merge it into the previous span
                 results.append(next(children))
