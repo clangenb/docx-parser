@@ -58,6 +58,16 @@ def get_first_from_sequence(sequence, default=None):
     return first_result
 
 
+def is_invisible(obj):
+    """
+    Determines if the object is invisible, i.e., whitespace or linebreaks
+    """
+    if isinstance(obj, str):
+        return not obj.strip()
+    else:
+        return HtmlTag.is_break_tag(obj)
+
+
 def is_only_whitespace(obj):
     """
     If the obj has `strip` return True if calling strip on the obj results in
@@ -179,7 +189,7 @@ class HtmlTag(object):
 
     @staticmethod
     def is_break_tag(maybe_paragraph_tag):
-        return HtmlTag.is_tag(maybe_paragraph_tag ,'br')
+        return HtmlTag.is_tag(maybe_paragraph_tag, 'br')
 
     @staticmethod
     def is_span_tag(maybe_span_tag):
@@ -291,10 +301,10 @@ class PyDocXTextExporter(PyDocXExporter):
         next(results)
 
         string_buf = ''.join(
-                r.to_html() if isinstance(r, HtmlTag)
-                else r
-                for r in itertools.takewhile(lambda x: not HtmlTag.is_table_cell_tag(x), results)
-            )
+            r.to_html() if isinstance(r, HtmlTag)
+            else r
+            for r in itertools.takewhile(lambda x: not HtmlTag.is_table_cell_tag(x), results)
+        )
 
         data = string_buf.split('<br />')
         print(data)
@@ -394,13 +404,12 @@ class PyDocXTextExporter(PyDocXExporter):
         children = peekable(paragraph_children)
 
         for child in children:
-            if not children:
-                if not HtmlTag.is_span_tag(child):
-                    results.append(child)
-                return results
-
             if HtmlTag.is_span_tag(child):
                 continue
+
+            if not children:
+                results.append(child)
+                return results
 
             if not HtmlTag.is_style_tag(child):
                 results.append(child)
@@ -413,24 +422,20 @@ class PyDocXTextExporter(PyDocXExporter):
             elif HtmlTag.is_tag(children.peek(), curr_style_tag):
                 # style tag is closing but the next one is the same, hence we skip both and merge the spans
                 next(children)
-            else:
-                # closing style tag, next one is not the same as the current
-                next_item = next(children)
-                second_next_item = None
-                if children:
-                    second_next_item = next(children)
-
-                if not HtmlTag.is_tag(second_next_item, curr_style_tag):
-                    results.append(child)
-                    results.append(next_item)
-
-                    if second_next_item is not None and not HtmlTag.is_span_tag(second_next_item):
-                        results.append(second_next_item)
-
-                    if HtmlTag.is_style_tag(second_next_item):
-                        curr_style_tag = second_next_item.tag
+            # else:
+                # results.append(child)
+            elif is_invisible(children.peek()):
+                # next item is invisible, merge it into the previous span
+                results.append(next(children))
+                if children and HtmlTag.is_tag(children.peek(), curr_style_tag):
+                    # second next item is has the same style as the current span, skip both tags and merge the spans
+                    next(children)
                 else:
-                    results.append(next_item)
+                    results.append(child)
+                    curr_style_tag = ""
+            else:
+                results.append(child)
+                curr_style_tag = ""
 
         # print(results)
         return results

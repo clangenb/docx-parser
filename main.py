@@ -23,5 +23,6 @@ if __name__ == '__main__':
     #         # print(child)
     #         print(list(exporter.export_paragraph(child)))
 
-    jsonStr = jsonpickle.encode(exporter.export_to_docx_dto(), unpicklable=False, make_refs=False)
-    print(jsonStr)
+    # jsonStr = jsonpickle.encode(exporter.export_to_docx_dto(), unpicklable=False, make_refs=False)
+    # print(jsonStr)
+    print(exporter.export())
