@@ -29,7 +29,7 @@ from pydocx.util.xml import (
     convert_dictionary_to_style_fragment,
 )
 
-from docx_dto import DocxDto, Paragraph, TextSpan
+from docx_dto import DocxDto, Paragraph, TextSpan, Metadata
 
 
 def convert_twips_to_ems(value):
@@ -219,8 +219,10 @@ class PyDocXTextExporter(PyDocXExporter):
 
         current_paragraph = None
         open_emphasis_tag = False
+        parsed_metadata = False
         str_buffer = ''
-        for result in super(PyDocXTextExporter, self).export():
+        results = super(PyDocXTextExporter, self).export()
+        for result in results:
             if not isinstance(result, HtmlTag):
                 str_buffer += result
             elif self.is_paragraph_tag(result):
@@ -241,10 +243,55 @@ class PyDocXTextExporter(PyDocXExporter):
                         current_paragraph.append_span(TextSpan(str_buffer))
                     open_emphasis_tag = True
                 str_buffer = ''
+            elif not parsed_metadata:
+                if self.is_table_cell_tag(result):
+                    docx.metadata = self.export_metadata(results)
+                    parsed_metadata = True
             else:
                 str_buffer += result.to_html()
 
         return docx
+
+    def export_metadata(self, results):
+        for result in results:
+            # metadata starts after the first break tag
+            if not self.is_break_tag(result):
+                continue
+            else:
+                break
+
+        title = ''
+        for result in results:
+            if self.is_bold_tag(result):
+                if not result.closed:
+                    continue
+                else:
+                    break
+            # if isinstance(result, HtmlTag):
+            #     title += result.to_html()
+            # else:
+            title += result
+
+        string_buf = ''
+        for result in results:
+            if self.is_table_cell_tag(result):
+                break
+
+            if isinstance(result, HtmlTag):
+                string_buf += result.to_html()
+            else:
+                string_buf += result
+
+        print(title)
+        print(string_buf)
+        data = string_buf.split('<br />')
+        print(data)
+        (loc, date) = data[1].split(',')
+        id = data[2]
+        type = data[3].replace('Typ: ', '')
+        category = data[4].replace('Kategorie: ', '')
+
+        return Metadata(name=title, date=date, location=loc, type=type, category=category)
 
     def export_document(self, document):
         tag = HtmlTag('html')
@@ -365,8 +412,20 @@ class PyDocXTextExporter(PyDocXExporter):
         return isinstance(maybe_emphasis_tag, HtmlTag) and maybe_emphasis_tag.tag == 'em'
 
     @staticmethod
+    def is_bold_tag(maybe_paragraph_tag):
+        return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'strong'
+
+    @staticmethod
     def is_paragraph_tag(maybe_paragraph_tag):
         return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'p'
+
+    @staticmethod
+    def is_table_cell_tag(maybe_paragraph_tag):
+        return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'td'
+
+    @staticmethod
+    def is_break_tag(maybe_paragraph_tag):
+        return isinstance(maybe_paragraph_tag, HtmlTag) and maybe_paragraph_tag.tag == 'br'
 
     def export_paragraph_property_justification(self, paragraph, results):
         # TODO these classes could be applied on the paragraph, and not as
