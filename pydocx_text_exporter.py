@@ -158,8 +158,12 @@ class HtmlTag(object):
         return convert_dictionary_to_html_attributes(self.attrs)
 
     @staticmethod
+    def is_style_tag(tag):
+        return HtmlTag.is_emphasized_tag(tag) or HtmlTag.is_bold_tag(tag)
+
+    @staticmethod
     def is_emphasized_tag(maybe_emphasis_tag):
-        return HtmlTag.is_tag(maybe_emphasis_tag,'em')
+        return HtmlTag.is_tag(maybe_emphasis_tag, 'em')
 
     @staticmethod
     def is_bold_tag(maybe_bold_tag):
@@ -179,7 +183,7 @@ class HtmlTag(object):
 
     @staticmethod
     def is_span_tag(maybe_span_tag):
-        return HtmlTag.is_tag(maybe_span_tag,'span')
+        return HtmlTag.is_tag(maybe_span_tag, 'span')
 
     @staticmethod
     def is_tag(this, other):
@@ -379,42 +383,53 @@ class PyDocXTextExporter(PyDocXExporter):
             results = tag.apply(results)
 
         if merge_style_tags:
-            results = self.merge_emphasis_style_tags(results)
+            results = self.merge_style_tags(results)
 
         for result in results:
             yield result
 
-    def merge_emphasis_style_tags(self, paragraph_children):
+    def merge_style_tags(self, paragraph_children):
         results = []
+        curr_style_tag = ''
         children = peekable(paragraph_children)
 
         for child in children:
-            if not HtmlTag.is_emphasized_tag(child):
-                results.append(child)
-                continue
-
-            if not child.closed:
-                results.append(child)
-            elif children and HtmlTag.is_emphasized_tag(children.peek()):
-                next(children)
-                continue
-            else:
-                # the next is not an em tag, but maybe the second next. If it is only whitespaces, we merge the two
-                # emphasized sections
-                if children:
-                    next_item = next(children)
-                    if isinstance(next_item, str) and next_item.strip():
-                        results.append(next_item)
-                        continue
-                else:
-                    continue
-
-                if children and HtmlTag.is_emphasized_tag(children.peek()):
-                    # the next one is again an em tag, hence emphasize the one in between too.
-                    results.append(next_item)
-                    next(children)
-                else:
+            if not children:
+                if not HtmlTag.is_span_tag(child):
                     results.append(child)
+                return results
+
+            if HtmlTag.is_span_tag(child):
+                continue
+
+            if not HtmlTag.is_style_tag(child):
+                results.append(child)
+                continue
+
+            # have a style tag
+            if not child.closed:
+                curr_style_tag = child.tag
+                results.append(child)
+            elif HtmlTag.is_tag(children.peek(), curr_style_tag):
+                # style tag is closing but the next one is the same, hence we skip both and merge the spans
+                next(children)
+            else:
+                # closing style tag, next one is not the same as the current
+                next_item = next(children)
+                second_next_item = None
+                if children:
+                    second_next_item = next(children)
+
+                if not HtmlTag.is_tag(second_next_item, curr_style_tag):
+                    results.append(child)
+                    results.append(next_item)
+
+                    if second_next_item is not None and not HtmlTag.is_span_tag(second_next_item):
+                        results.append(second_next_item)
+
+                    if HtmlTag.is_style_tag(second_next_item):
+                        curr_style_tag = second_next_item.tag
+                else:
                     results.append(next_item)
 
         # print(results)
