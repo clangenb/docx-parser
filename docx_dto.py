@@ -2,7 +2,8 @@ from typing import List
 
 
 class Metadata:
-    def __init__(self, name: str, date: str, location: str, type: str = '', category: str = ''):
+    def __init__(self, doc_id: str, name: str, date: str, location: str, type: str = '', category: str = ''):
+        self.id = doc_id
         self.name = name
         self.date = date
         self.location = location
@@ -27,10 +28,9 @@ class Paragraph:
 
 
 class DocxDto:
-    def __init__(self, doc_id: str = '', metadata: Metadata = None, content: List[Paragraph] = None):
+    def __init__(self, metadata: Metadata = None, content: List[Paragraph] = None):
         if content is None:
             content = []
-        self.id = doc_id
         self.metadata = metadata
         self.content = content
 

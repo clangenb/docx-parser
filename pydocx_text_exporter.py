@@ -7,6 +7,7 @@ from __future__ import (
 )
 
 import base64
+import itertools
 import posixpath
 from itertools import chain
 
@@ -253,45 +254,29 @@ class PyDocXTextExporter(PyDocXExporter):
         return docx
 
     def export_metadata(self, results):
-        for result in results:
-            # metadata starts after the first break tag
-            if not self.is_break_tag(result):
-                continue
-            else:
-                break
+        # metadata starts after the first break tag
+        results = itertools.dropwhile(lambda x: not self.is_break_tag(x), results)
+        next(results)
 
-        title = ''
-        for result in results:
-            if self.is_bold_tag(result):
-                if not result.closed:
-                    continue
-                else:
-                    break
-            # if isinstance(result, HtmlTag):
-            #     title += result.to_html()
-            # else:
-            title += result
+        string_buf = ''.join(
+                r.to_html() if isinstance(r, HtmlTag)
+                else r
+                for r in itertools.takewhile(lambda x: not self.is_table_cell_tag(x), results)
+            )
 
-        string_buf = ''
-        for result in results:
-            if self.is_table_cell_tag(result):
-                break
-
-            if isinstance(result, HtmlTag):
-                string_buf += result.to_html()
-            else:
-                string_buf += result
-
-        print(title)
-        print(string_buf)
         data = string_buf.split('<br />')
         print(data)
+        title = data[0].replace('<strong>', '').replace('</strong>', '')
         (loc, date) = data[1].split(',')
-        id = data[2]
-        type = data[3].replace('Typ: ', '')
-        category = data[4].replace('Kategorie: ', '')
 
-        return Metadata(name=title, date=date, location=loc, type=type, category=category)
+        return Metadata(
+            doc_id=data[2],
+            name=title,
+            date=date.strip(),
+            location=loc,
+            type=data[3].replace('Typ: ', ''),
+            category=data[4].replace('Kategorie: ', '')
+        )
 
     def export_document(self, document):
         tag = HtmlTag('html')
