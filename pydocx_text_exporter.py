@@ -169,6 +169,8 @@ class HtmlTag(object):
             return '\n'
         elif self.is_span_tag(self):
             return ''
+        elif self.is_hr_tag(self):
+            return ''
         else:
             return self.to_html()
 
@@ -206,6 +208,10 @@ class HtmlTag(object):
     @staticmethod
     def is_span_tag(maybe_span_tag):
         return HtmlTag.is_tag(maybe_span_tag, 'span')
+
+    @staticmethod
+    def is_hr_tag(maybe_span_tag):
+        return HtmlTag.is_tag(maybe_span_tag, 'hr')
 
     @staticmethod
     def is_tag(this, other):
