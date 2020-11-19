@@ -13,7 +13,7 @@ class Metadata:
 
 class TextSpan:
     def __init__(self, text: str, text_style: str = ''):
-        self.text = text,
+        self.text = text
         self.text_style = text_style
 
 
