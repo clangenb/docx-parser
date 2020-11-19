@@ -196,6 +196,10 @@ class HtmlTag(object):
         return HtmlTag.is_tag(maybe_table_cell_tag, 'td')
 
     @staticmethod
+    def is_body_tag(maybe_table_cell_tag):
+        return HtmlTag.is_tag(maybe_table_cell_tag, 'td')
+
+    @staticmethod
     def is_break_tag(maybe_paragraph_tag):
         return HtmlTag.is_tag(maybe_paragraph_tag, 'br')
 
@@ -270,7 +274,6 @@ class PyDocXTextExporter(PyDocXExporter):
 
         current_paragraph = None
         open_style_tag = False
-        parsed_metadata = False
         str_buffer = ''
         results = super(PyDocXTextExporter, self).export()
         for result in results:
@@ -294,38 +297,12 @@ class PyDocXTextExporter(PyDocXExporter):
                         current_paragraph.append_span(TextSpan(str_buffer))
                     open_style_tag = True
                 str_buffer = ''
-            elif not parsed_metadata:
-                if HtmlTag.is_table_cell_tag(result):
-                    docx.metadata = self.export_metadata(results)
-                    parsed_metadata = True
             else:
                 str_buffer += result.to_text()
 
+        docx.extract_metadata_from_content()
+
         return docx
-
-    def export_metadata(self, results):
-        # metadata starts after the first break tag
-        results = itertools.dropwhile(lambda x: not HtmlTag.is_break_tag(x), results)
-        next(results)
-
-        string_buf = ''.join(
-            r.to_html() if isinstance(r, HtmlTag)
-            else r
-            for r in itertools.takewhile(lambda x: not HtmlTag.is_table_cell_tag(x), results)
-        )
-
-        data = string_buf.split('<br />')
-        title = data[0].replace('<strong>', '').replace('</strong>', '')
-        (loc, date) = data[1].split(',')
-
-        return Metadata(
-            doc_id=data[2],
-            name=title,
-            date=date.strip(),
-            location=loc,
-            type=data[3].replace('Typ: ', ''),
-            category=data[4].replace('Kategorie: ', '')
-        )
 
     def export_document(self, document):
         tag = HtmlTag('html')
