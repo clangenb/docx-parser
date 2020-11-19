@@ -18,6 +18,6 @@ if __name__ == '__main__':
 
     jsonStr = jsonpickle.encode(docx, unpicklable=False, make_refs=False)
     print(jsonStr)
-    # variable_name = docx.metadata.title.replace(" ", "")
-    # with open(path, 'w') as file:
-    #     file.write(f"Map {variable_name} = {jsonStr};")
+    variable_name = docx.metadata.title.replace(" ", "")
+    with open(path, 'w') as file:
+        file.write(f"Map {variable_name} = {jsonStr};")

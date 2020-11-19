@@ -63,7 +63,7 @@ class DocxDto:
         id = self.content.pop(0).to_text()
         type = self.content.pop(0).to_text()
         category = self.content.pop(0).to_text()
-        img = self.content.pop(0).to_text()
+        img = self.content.pop(0).to_text().split('src="')[1].split('" width')[0]
 
         self.metadata = Metadata(
             doc_id=id.replace('Code:', '').strip(),
